@@ -1,4 +1,4 @@
-type PlayerId = string;
+type Marker = string;
 
 export enum PlayerType {
   Human = "Human",
@@ -11,8 +11,8 @@ export enum Level {
 }
 
 type BasePlayer = {
-  id: PlayerId;
-  symbol: string;
+  id: string;
+  marker: string;
 };
 
 export type Human = BasePlayer & {
@@ -26,9 +26,7 @@ export type Computer = BasePlayer & {
 
 export type Player = Human | Computer;
 
-export type Board = {
-  [key: string]: PlayerId | undefined;
-};
+export type Board = { [key: number]: Marker | undefined };
 
 export type Game = {
   board: Board;

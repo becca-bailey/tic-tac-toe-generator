@@ -1,9 +1,10 @@
-export function createBoard(formattedString: string, placeholder = "-") {
-  const values = formattedString.replace(/\s/g, "").split("");
-  return values.reduce((board, value, index) => {
-    if (value !== placeholder) {
-      board[index] = value;
-      return board;
-    }
-  }, {});
+import { Board } from "./types";
+
+export function createBoard(formattedString: string, placeholder = "-"): Board {
+  const board = formattedString
+    .replace(/\s/g, "")
+    .split("")
+    .map(value => (value === placeholder ? undefined : value));
+
+  return { ...board };
 }
