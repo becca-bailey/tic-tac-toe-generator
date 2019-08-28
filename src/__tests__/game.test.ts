@@ -1,4 +1,4 @@
-import { PlayerType, Level } from "./../types";
+import { PlayerType, Level, Computer, Human } from "./../types";
 import { INVALID_PLAYERS, INVALID_BOARD } from "./../messages";
 import { INITIAL_BOARD, DEFAULT_PLAYERS } from "./../game";
 import { createGame } from "../game";
@@ -195,9 +195,6 @@ describe("createGame", () => {
         `)
       );
 
-      // I want to avoid calling this a final time
-      // nextState = game.next();
-
       expect(nextState.done).toBe(true);
     });
   });
@@ -232,20 +229,19 @@ describe("createGame", () => {
     });
 
     it("wins the game", () => {
+      const computerPlayer: Computer = {
+        id: "player-1",
+        marker: "X",
+        type: PlayerType.Computer,
+        level: Level.Hard
+      };
+      const humanPlayer: Human = {
+        id: "player-2",
+        marker: "O",
+        type: PlayerType.Human
+      };
       const game = createGame({
-        players: [
-          {
-            id: "player-1",
-            marker: "X",
-            type: PlayerType.Computer,
-            level: Level.Hard
-          },
-          {
-            id: "player-2",
-            marker: "O",
-            type: PlayerType.Human
-          }
-        ]
+        players: [computerPlayer, humanPlayer]
       });
 
       const initialState = game.next();
@@ -260,7 +256,6 @@ describe("createGame", () => {
 
       let nextState = game.next(4);
 
-      expect(nextState.done).toBe(false);
       expect(nextState.value.board).toEqual(
         createBoard(`
           X - - 
@@ -268,6 +263,40 @@ describe("createGame", () => {
           - - - 
         `)
       );
+
+      nextState = game.next();
+
+      expect(nextState.value.board).toEqual(
+        createBoard(`
+          X - - 
+          X O - 
+          - - - 
+        `)
+      );
+
+      nextState = game.next(2);
+
+      expect(nextState.value.board).toEqual(
+        createBoard(`
+          X - O 
+          X O - 
+          - - - 
+        `)
+      );
+
+      nextState = game.next();
+
+      expect(nextState.done).toBe(true);
+      expect(nextState.value.board).toEqual(
+        createBoard(`
+          X - O 
+          X O - 
+          X - - 
+        `)
+      );
+      expect(nextState.value.winner).toEqual(computerPlayer);
+
+      expect(nextState.done).toBe(true);
     });
   });
 });

@@ -1,6 +1,9 @@
-import { Board, Player, PlayerType, Level, Game } from "./types";
+import { getBestMove } from "./ai";
+import { isFull } from "./board";
+import { GameConfig, validateConfig } from "./config";
+import { getNextPlayer, getWinner, advanceGameState } from "./rules";
+import { Board, Level, Player, PlayerType } from "./types";
 import { createBoard } from "./utils";
-import { INVALID_PLAYERS, INVALID_BOARD } from "./messages";
 
 export const INITIAL_BOARD: Board = createBoard(`
     - - - 
@@ -22,124 +25,43 @@ export const DEFAULT_PLAYERS: Player[] = [
   }
 ];
 
-type GameConfig = {
-  players?: Player[];
-  board?: Board;
-};
-
-export function validateConfig({ players, board }: GameConfig) {
-  if (players && players.length !== 2) {
-    throw new Error(INVALID_PLAYERS);
-  }
-  if (board && Object.keys(board).length !== 9) {
-    throw new Error(INVALID_BOARD);
-  }
-}
-
-function isFull(board: Board) {
-  return Object.values(board).every(value => !!value);
-}
-
-export function getNextPlayer(players: Player[], currentPlayer?: Player) {
-  if (!currentPlayer) {
-    const [player1] = players;
-    return player1;
-  }
-  return players.find(player => player !== currentPlayer);
-}
-
-const winningIndeces = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6]
-];
-
-function getWinner(board: Board, players: Player[]) {
-  const [player1, player2] = players;
-  let winner = undefined;
-  winningIndeces.forEach(row => {
-    const markers = row.map(i => board[i]);
-    if (markers.every(m => m === player1.marker)) {
-      winner = player1;
-    } else if (markers.every(m => m === player2.marker)) {
-      winner = player2;
-    }
-  });
-  return winner;
-}
-
-function getBestMove(board: Board, players: Player[]) {
-  return 0;
-}
-
 export function* createGame(config: GameConfig = {}) {
   validateConfig(config);
 
   const { players = DEFAULT_PLAYERS, board = INITIAL_BOARD } = config;
-  let currentPlayer: Player | undefined = getNextPlayer(players);
-  let winner: Player | undefined = getWinner(board, players);
-  let currentBoard: Board = board;
 
   let game = {
     players,
-    board: currentBoard,
-    currentPlayer,
-    winner
+    board,
+    currentPlayer: getNextPlayer(players),
+    winner: getWinner(board, players)
   };
 
   let spotIndex: number;
 
-  while (!winner && !isFull(currentBoard)) {
-    if (currentPlayer.type === PlayerType.Computer) {
-      const bestMove = getBestMove(board, players);
-      currentBoard = { ...currentBoard, [bestMove]: currentPlayer.marker };
-      winner = getWinner(currentBoard, players);
-
-      game = {
-        ...game,
-        board: currentBoard,
-        currentPlayer,
-        winner
-      };
-
-      if (winner || isFull(currentBoard)) {
-        return game;
-      }
-
-      // Get next player
-      currentPlayer = getNextPlayer(players, currentPlayer);
-      spotIndex = yield game;
+  while (!game.winner && !isFull(game.board)) {
+    if (game.currentPlayer.type === PlayerType.Computer) {
+      spotIndex = getBestMove(game);
     }
+
     if (spotIndex === undefined) {
       spotIndex = yield game;
-    } else {
-      // Add current player's marker to board
-      currentBoard = { ...currentBoard, [spotIndex]: currentPlayer.marker };
-
-      // Check to see if this is an end state
-      winner = getWinner(currentBoard, players);
-
-      game = {
-        ...game,
-        board: currentBoard,
-        currentPlayer,
-        winner
-      };
-
-      if (winner || isFull(currentBoard)) {
-        return game;
-      }
-
-      // Get next player
-      currentPlayer = getNextPlayer(players, currentPlayer);
-      spotIndex = yield game;
     }
+
+    if (!!game.board[spotIndex]) {
+      throw new Error("Spot is already taken");
+    }
+
+    game = advanceGameState(game, spotIndex);
+
+    if (game.winner || isFull(game.board)) {
+      // This will return { done: true } if the game is over
+      return game;
+    }
+
+    spotIndex = yield game;
   }
 
+  // This will return { done: true } if the game is over
   return game;
 }
