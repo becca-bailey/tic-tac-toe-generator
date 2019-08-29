@@ -44,19 +44,14 @@ export function* createGame(config: GameConfig = {}) {
       spotIndex = getBestMove(game);
     }
 
-    if (spotIndex === undefined) {
-      spotIndex = yield game;
-    }
+    // Only advances game if there is a spot index, and it is not taken
+    if (spotIndex !== undefined && !game.board[spotIndex]) {
+      game = advanceGameState(game, spotIndex);
 
-    if (!!game.board[spotIndex]) {
-      throw new Error("Spot is already taken");
-    }
-
-    game = advanceGameState(game, spotIndex);
-
-    if (game.winner || isFull(game.board)) {
-      // This will return { done: true } if the game is over
-      return game;
+      if (game.winner || isFull(game.board)) {
+        // This will return { done: true } if the game is over
+        return game;
+      }
     }
 
     spotIndex = yield game;
