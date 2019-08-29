@@ -1,6 +1,6 @@
 {
   "name": "tic-tac-toe-generator",
-  "version": "1.0.1",
+  "version": "0.0.2",
   "description": "A tic tac toe game that implements the iterator protocol",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
