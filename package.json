@@ -1,8 +1,9 @@
 {
   "name": "tic-tac-toe-generator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tic tac toe game that implements the iterator protocol",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": "https://www.github.com/beccanelson/tic-tac-toe-generator",
   "author": "Becca Bailey <beccanelsonbailey@gmail.com>",
   "license": "MIT",

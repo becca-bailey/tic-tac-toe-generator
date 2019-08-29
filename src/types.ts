@@ -21,7 +21,7 @@ export type Human = BasePlayer & {
 
 export type Computer = BasePlayer & {
   type: PlayerType.Computer;
-  level: Level;
+  level?: Level;
 };
 
 export type Player = Human | Computer;
